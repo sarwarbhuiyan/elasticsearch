@@ -52,7 +52,7 @@ import java.util.*;
  *
  * <p>
  * This can result in powerful suggester functionality.  For
- * example, if you use an analyzer removing stop words, 
+ * example, if you use an analyzer removing stop words,
  * then the partial text "ghost chr..." could see the
  * suggestion "The Ghost of Christmas Past".  Note that
  * position increments MUST NOT be preserved for this example
@@ -92,37 +92,37 @@ import java.util.*;
  *   <li> Lookups with the empty string return no results
  *        instead of all results.
  * </ul>
- * 
+ *
  * @lucene.experimental
  */
 public class XAnalyzingSuggester extends Lookup {
 
   /**
-   * FST<Weight,Surface>: 
+   * FST<Weight,Surface>:
    *  input is the analyzed form, with a null byte between terms
    *  weights are encoded as costs: (Integer.MAX_VALUE-weight)
    *  surface is the original, unanalyzed form.
    */
   private FST<Pair<Long,BytesRef>> fst = null;
-  
-  /** 
+
+  /**
    * Analyzer that will be used for analyzing suggestions at
    * index time.
    */
   private final Analyzer indexAnalyzer;
 
-  /** 
+  /**
    * Analyzer that will be used for analyzing suggestions at
    * query time.
    */
   private final Analyzer queryAnalyzer;
-  
-  /** 
+
+  /**
    * True if exact match suggestions should always be returned first.
    */
   private final boolean exactFirst;
-  
-  /** 
+
+  /**
    * True if separator between tokens should be preserved.
    */
   private final boolean preserveSep;
@@ -171,7 +171,7 @@ public class XAnalyzingSuggester extends Lookup {
 
   public static final int PAYLOAD_SEP = '\u001F';
   public static final int HOLE_CHARACTER = '\u001E';
-  
+
   private final Automaton queryPrefix;
 
   /** Whether position holes should appear in the automaton. */
@@ -200,7 +200,7 @@ public class XAnalyzingSuggester extends Lookup {
 
   /**
    * Creates a new suggester.
-   * 
+   *
    * @param indexAnalyzer Analyzer that will be used for
    *   analyzing suggestions while building the index.
    * @param queryAnalyzer Analyzer that will be used for
@@ -217,7 +217,7 @@ public class XAnalyzingSuggester extends Lookup {
   public XAnalyzingSuggester(Analyzer indexAnalyzer, Automaton queryPrefix, Analyzer queryAnalyzer, int options, int maxSurfaceFormsPerAnalyzedForm, int maxGraphExpansions,
                              boolean preservePositionIncrements, FST<Pair<Long, BytesRef>> fst, boolean hasPayloads, int maxAnalyzedPathsForOneInput,
                              int sepLabel, int payloadSep, int endByte, int holeCharacter) {
-      // SIMON EDIT: I added fst, hasPayloads and maxAnalyzedPathsForOneInput 
+      // SIMON EDIT: I added fst, hasPayloads and maxAnalyzedPathsForOneInput
     this.indexAnalyzer = indexAnalyzer;
     this.queryAnalyzer = queryAnalyzer;
     this.fst = fst;
@@ -230,7 +230,7 @@ public class XAnalyzingSuggester extends Lookup {
 
     // FLORIAN EDIT: I added <code>queryPrefix</code> for context dependent suggestions
     this.queryPrefix = queryPrefix;
-    
+
     // NOTE: this is just an implementation limitation; if
     // somehow this is a problem we could fix it by using
     // more than one byte to disambiguate ... but 256 seems
@@ -317,7 +317,7 @@ public class XAnalyzingSuggester extends Lookup {
     }
     return a;
   }
-  
+
   private int[] topoSortStates(Automaton a) {
       int[] states = new int[a.getNumStates()];
       final Set<Integer> visited = new HashSet<>();
@@ -384,7 +384,7 @@ public class XAnalyzingSuggester extends Lookup {
     tsta.setPreservePositionIncrements(preservePositionIncrements);
     return tsta;
   }
-  
+
   private static class AnalyzingComparator implements Comparator<BytesRef> {
 
     private final boolean hasPayloads;
@@ -467,13 +467,13 @@ public class XAnalyzingSuggester extends Lookup {
 
       while ((surfaceForm = iterator.next()) != null) {
         Set<IntsRef> paths = toFiniteStrings(surfaceForm, ts2a);
-        
+
         maxAnalyzedPathsForOneInput = Math.max(maxAnalyzedPathsForOneInput, paths.size());
 
         for (IntsRef path : paths) {
 
           Util.toBytesRef(path, scratch);
-          
+
           // length of the analyzed text (FST input)
           if (scratch.length() > Short.MAX_VALUE-2) {
             throw new IllegalArgumentException("cannot handle analyzed forms > " + (Short.MAX_VALUE-2) + " in length (got " + scratch.length() + ")");
@@ -496,9 +496,9 @@ public class XAnalyzingSuggester extends Lookup {
           } else {
             payload = null;
           }
-          
+
           buffer = ArrayUtil.grow(buffer, requiredLength);
-          
+
           output.reset(buffer);
 
           output.writeShort(analyzedLength);
@@ -535,7 +535,7 @@ public class XAnalyzingSuggester extends Lookup {
       tempInput.delete();
 
       reader = new OfflineSorter.ByteSequencesReader(tempSorted);
-     
+
       PairOutputs<Long,BytesRef> outputs = new PairOutputs<>(PositiveIntOutputs.getSingleton(), ByteSequenceOutputs.getSingleton());
       Builder<Pair<Long,BytesRef>> builder = new Builder<>(FST.INPUT_TYPE.BYTE1, outputs);
 
@@ -570,7 +570,7 @@ public class XAnalyzingSuggester extends Lookup {
           surface.offset = input.getPosition();
           surface.length = scratch.length() - surface.offset;
         }
-        
+
         if (previousAnalyzed == null) {
           previousAnalyzed = new BytesRefBuilder();
           previousAnalyzed.copyBytes(analyzed);
@@ -632,7 +632,7 @@ public class XAnalyzingSuggester extends Lookup {
       } else {
         IOUtils.closeWhileHandlingException(reader, writer);
       }
-      
+
       tempInput.delete();
       tempSorted.delete();
     }
@@ -743,7 +743,7 @@ public class XAnalyzingSuggester extends Lookup {
       final CharsRefBuilder spare = new CharsRefBuilder();
 
       //System.out.println("  now intersect exactFirst=" + exactFirst);
-    
+
       // Intersect automaton w/ suggest wFST and get all
       // prefix starting nodes & their outputs:
       //final PathIntersector intersector = getPathIntersector(lookupAutomaton, fst);
@@ -831,7 +831,7 @@ public class XAnalyzingSuggester extends Lookup {
             return false;
           }
           seen.add(output.output2);
-          
+
           if (!exactFirst) {
             return true;
           } else {
@@ -851,7 +851,7 @@ public class XAnalyzingSuggester extends Lookup {
       };
 
       prefixPaths = getFullPrefixPaths(prefixPaths, lookupAutomaton, fst);
-      
+
       for (FSTUtil.Path<Pair<Long,BytesRef>> path : prefixPaths) {
         searcher.addStartPaths(path.fstNode, path.output, true, path.input);
       }
@@ -916,7 +916,7 @@ public class XAnalyzingSuggester extends Lookup {
       TokenStream ts = indexAnalyzer.tokenStream("", surfaceForm.utf8ToString());
       return toFiniteStrings(ts2a, ts);
   }
-      
+
   public final Set<IntsRef> toFiniteStrings(final TokenStreamToAutomaton ts2a, final TokenStream ts) throws IOException {
       Automaton automaton = null;
       try {
@@ -966,8 +966,8 @@ public class XAnalyzingSuggester extends Lookup {
       automaton = Operations.determinize(automaton, Integer.MAX_VALUE);
       return automaton;
   }
-  
-  
+
+
 
   /**
    * Returns the weight associated with an input string,
@@ -976,28 +976,32 @@ public class XAnalyzingSuggester extends Lookup {
   public Object get(CharSequence key) {
     throw new UnsupportedOperationException();
   }
-  
-  /** cost -> weight */
+
+  /**
+   * cost -&gt; weight
+   */
   public static int decodeWeight(long encoded) {
     return (int)(Integer.MAX_VALUE - encoded);
   }
-  
-  /** weight -> cost */
+
+  /**
+   * weight -&gt; cost
+   */
   public static int encodeWeight(long value) {
     if (value < 0 || value > Integer.MAX_VALUE) {
       throw new UnsupportedOperationException("cannot encode value: " + value);
     }
     return Integer.MAX_VALUE - (int)value;
   }
-   
+
   static final Comparator<Pair<Long,BytesRef>> weightComparator = new Comparator<Pair<Long,BytesRef>> () {
     @Override
     public int compare(Pair<Long,BytesRef> left, Pair<Long,BytesRef> right) {
       return left.output1.compareTo(right.output1);
     }
   };
-  
-  
+
+
     public static class XBuilder {
         private Builder<Pair<Long, BytesRef>> builder;
         private int maxSurfaceFormsPerAnalyzedForm;
@@ -1023,11 +1027,11 @@ public class XAnalyzingSuggester extends Lookup {
             this.analyzed.grow(analyzed.length+2);
             this.analyzed.copyBytes(analyzed);
         }
-        
+
         private final static class SurfaceFormAndPayload implements Comparable<SurfaceFormAndPayload> {
             BytesRef payload;
             long weight;
-            
+
             public SurfaceFormAndPayload(BytesRef payload, long cost) {
                 super();
                 this.payload = payload;
@@ -1051,8 +1055,8 @@ public class XAnalyzingSuggester extends Lookup {
             int surfaceIndex = -1;
             long encodedWeight = cost == -1 ? cost : encodeWeight(cost);
             /*
-             * we need to check if we have seen this surface form, if so only use the 
-             * the surface form with the highest weight and drop the rest no matter if 
+             * we need to check if we have seen this surface form, if so only use the
+             * the surface form with the highest weight and drop the rest no matter if
              * the payload differs.
              */
             if (count >= maxSurfaceFormsPerAnalyzedForm) {
@@ -1073,7 +1077,7 @@ public class XAnalyzingSuggester extends Lookup {
                 surfaceCopy = BytesRef.deepCopyOf(surface);
                 seenSurfaceForms.put(surfaceCopy, surfaceIndex);
             }
-           
+
             BytesRef payloadRef;
             if (!hasPayloads) {
                 payloadRef = surfaceCopy;
@@ -1093,7 +1097,7 @@ public class XAnalyzingSuggester extends Lookup {
                 surfaceFormsAndPayload[surfaceIndex].weight = encodedWeight;
             }
         }
-        
+
         public void finishTerm(long defaultWeight) throws IOException {
             ArrayUtil.timSort(surfaceFormsAndPayload, 0, count);
             int deduplicator = 0;

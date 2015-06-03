@@ -48,11 +48,13 @@ import static org.elasticsearch.common.lucene.search.Queries.fixNegativeQueryIfN
 import static org.elasticsearch.index.query.support.QueryParsers.wrapSmartNameQuery;
 
 /**
+ * <p>
  * A query parser that uses the {@link MapperService} in order to build smarter
  * queries based on the mapping information.
- * <p/>
+ * </p>
  * <p>Also breaks fields with [type].[name] into a boolean query that must include the type
  * as well as the query on the name.
+ * </p>
  */
 public class MapperQueryParser extends QueryParser {
 
@@ -463,7 +465,7 @@ public class MapperQueryParser extends QueryParser {
     protected Query newFuzzyQuery(Term term, float minimumSimilarity, int prefixLength) {
         String text = term.text();
         int numEdits = FuzzyQuery.floatToEdits(minimumSimilarity, text.codePointCount(0, text.length()));
-        //LUCENE 4 UPGRADE I disabled transpositions here by default - maybe this needs to be changed 
+        //LUCENE 4 UPGRADE I disabled transpositions here by default - maybe this needs to be changed
         FuzzyQuery query = new FuzzyQuery(term, numEdits, prefixLength, settings.fuzzyMaxExpansions(), false);
         QueryParsers.setRewriteMethod(query, settings.fuzzyRewriteMethod());
         return query;
