@@ -205,7 +205,16 @@ Elasticsearch uses "Maven":http://maven.apache.org for its build system.
 In order to create a distribution, simply run the @mvn clean package
 -DskipTests@ command in the cloned directory.
 
-The distribution will be created under @target/releases@.
+h3. Building using Google Bazel
+
+This is experimental and is only for demonstration purposes. So far only the elasticsearch jar can be built. To do so, download the source to "Bazel":http://github.com/google/bazel and follow the Bazel build instructions.
+
+Then change directory to the elasticsearch folder and run bazel build --javacopt "-source 1.7 -target 1.7" core/elasticsearch-core
+
+The jar should be viewable in bazel-bin/core
+
+TODO: produce the release as the maven build does
+TODO: Build and run tests using Bazel
 
 See the "TESTING":TESTING.asciidoc file for more information about
 running the Elasticsearch test suite.
